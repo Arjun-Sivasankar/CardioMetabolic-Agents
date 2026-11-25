@@ -1,6 +1,6 @@
 {
   "id": "acc-aha-2023-cholesterol",
-  "title": "2023 ACC/AHA Guideline for Management of Blood Cholesterol",
+  "title": "Illustrative summary (not official guideline text): 2023 ACC/AHA Guideline for Management of Blood Cholesterol",
   "organization": "ACC/AHA",
   "year": 2023,
   "sections": {
@@ -12,5 +12,7 @@
         "Consider PCSK9 inhibitors if LDL goals not met on statin"
       ]
     }
-  }
+  },
+  "illustrative": true,
+  "disclaimer": "Short summary written for this research prototype. It is not the official guideline text and has not been checked against it. Not medical advice."
 }

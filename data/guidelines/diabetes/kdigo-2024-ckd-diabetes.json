@@ -1,6 +1,6 @@
 {
   "id": "kdigo-2024-ckd-diabetes",
-  "title": "KDIGO 2024 Clinical Practice Guideline for Diabetes in CKD",
+  "title": "Illustrative summary (not official guideline text): KDIGO 2024 Clinical Practice Guideline for Diabetes in CKD",
   "organization": "Kidney Disease: Improving Global Outcomes",
   "year": 2024,
   "sections": {
@@ -13,5 +13,7 @@
         "Avoid sulfonylureas in advanced CKD (hypoglycemia risk)"
       ]
     }
-  }
+  },
+  "illustrative": true,
+  "disclaimer": "Short summary written for this research prototype. It is not the official guideline text and has not been checked against it. Not medical advice."
 }

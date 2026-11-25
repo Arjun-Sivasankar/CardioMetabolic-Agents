@@ -1,6 +1,6 @@
 {
   "id": "ada-2024-standards",
-  "title": "2024 ADA Standards of Medical Care in Diabetes",
+  "title": "Illustrative summary (not official guideline text): 2024 ADA Standards of Medical Care in Diabetes",
   "organization": "American Diabetes Association",
   "year": 2024,
   "sections": {
@@ -45,5 +45,7 @@
   "references": [
     "Diabetes Care 2024;47(Suppl 1)",
     "PMID: 23456789"
-  ]
+  ],
+  "illustrative": true,
+  "disclaimer": "Short summary written for this research prototype. It is not the official guideline text and has not been checked against it. Not medical advice."
 }

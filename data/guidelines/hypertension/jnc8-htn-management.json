@@ -1,6 +1,6 @@
 {
   "id": "jnc8-htn-management",
-  "title": "JNC 8 Guidelines for Management of High Blood Pressure",
+  "title": "Illustrative summary (not official guideline text): JNC 8 Guidelines for Management of High Blood Pressure",
   "organization": "Joint National Committee",
   "year": 2014,
   "sections": {
@@ -13,5 +13,7 @@
         "African Americans: Thiazide or CCB preferred initial therapy"
       ]
     }
-  }
+  },
+  "illustrative": true,
+  "disclaimer": "Short summary written for this research prototype. It is not the official guideline text and has not been checked against it. Not medical advice."
 }

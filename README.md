@@ -1,175 +1,109 @@
-# Multi-Agent Medical AI System
-### Agentic Backbone — LangGraph Variant
+# Cardiometabolic agents
 
-A sophisticated multi-agent AI system for medical consultation and diagnosis, built with LangGraph. The system features specialized medical agents for different domains (cardiology, diabetes, hypertension) that collaborate to provide comprehensive medical insights.
+A multi-agent clinical decision support prototype for cardiology, diabetes and hypertension, built with LangGraph and a local LLM (Ollama or vLLM).
 
-## 🚀 Features
+> **Not medical advice. Research prototype.** The bundled guideline and literature data are illustrative summaries written for this project, not official guideline text or real publications. Do not use the output for patient care.
 
-- **Multi-Agent Architecture**: Specialized agents for different medical domains
-- **Router Agent**: Intelligently routes queries to relevant specialists
-- **Consensus Building**: Collaborative decision-making among specialists
-- **Medical Guidelines Integration**: Access to up-to-date clinical practice guidelines
-- **RAG Integration**: Retrieval-augmented generation with medical literature
-- **Drug Interaction Checking**: Built-in medication safety checks
-- **Dosing Calculators**: Evidence-based medication dosing tools
-- **Streamlit UI**: User-friendly web interface
-- **Flexible LLM Support**: Compatible with Ollama and vLLM backends
+## What it does
 
-## 📁 Project Structure
+You type a short clinical case, for example "58yo male, HTN with T2D (A1c 8.5%) and eGFR 55. First-line therapy?". The system then:
 
-```
-├── app.py                      # Streamlit web application
-├── requirements.txt            # Python dependencies
-├── agents/                     # AI agent implementations
-│   ├── base.py                 # Base agent class
-│   ├── router.py               # Query routing agent
-│   ├── specialist.py           # Domain specialist agents
-│   └── consensus.py            # Consensus building agent
-├── config/                     # Configuration files
-│   └── llm_config.py          # LLM provider settings
-├── core/                       # Core system components
-│   ├── llm.py                 # LLM interface
-│   └── state.py               # Graph state management
-├── data/                       # Medical data and guidelines
-│   ├── guidelines/             # Clinical practice guidelines
-│   │   ├── cardiology/
-│   │   ├── diabetes/
-│   │   └── hypertension/
-│   └── rag_corpus/            # Medical literature corpus
-├── graph/                     # LangGraph workflow
-│   └── builder.py             # Graph construction and execution
-├── tools/                     # Medical AI tools
-│   ├── guidelines.py          # Guidelines search
-│   ├── rag.py                 # Literature retrieval
-│   ├── dosing.py              # Medication dosing
-│   ├── interactions.py        # Drug interaction checking
-│   └── registry.py            # Tool registry and execution
-├── utils/                     # Utility functions
-│   ├── formatters.py          # Response formatting
-│   └── parser.py              # JSON parsing utilities
-├── scripts/                   # Setup and utility scripts
-│   └── setup_data.py          # Database initialization
-└── helpers/                   # Development notebooks
-    └── agentic-langgraph-diagnose.ipynb
+1. **Routes** the case. A router agent picks a primary specialist and any additional consults (cardiology, diabetes, hypertension) and sets an urgency level (routine, urgent, emergent).
+2. **Gathers evidence.** A tools step searches the local guideline summaries and the literature corpus with the case text.
+3. **Runs the specialists in sequence.** The primary specialist goes first; each later specialist sees the earlier specialists' assessments. Each returns structured JSON with an assessment, recommendations, concerns, contraindications, a confidence value and citations.
+4. **Builds a consensus.** A consensus agent merges the specialist outputs into one care plan with critical alerts, resolved conflicts, an agreement level and next steps.
+
+The Streamlit app shows each of these stages: the routing decision, one tab per specialist, the consensus plan and the raw tool outputs.
+
+Why this design: multimorbid patients (for example hypertension with type 2 diabetes and CKD) need input from several specialties, and the recommendations can conflict. Splitting the work into routed specialist agents plus an explicit consensus step makes each perspective and each conflict visible instead of hiding them in one long answer.
+
+<!-- screenshot: docs/screenshot.png -->
+
+## Architecture
+
+```mermaid
+graph TD
+    A[Clinical query] --> B[Router agent]
+    B --> C[Tools: guideline search + literature retrieval]
+    C --> D[Specialist coordinator]
+    D --> E[Primary specialist]
+    E --> F[Consulting specialists, in order]
+    F --> G[Consensus agent]
+    G --> H[Unified care plan]
 ```
 
-## 🛠️ Installation
+| Component | File | Role |
+|---|---|---|
+| Router agent | `agents/router.py` | Picks primary and consulting specialists and urgency; validates and repairs malformed LLM output |
+| Specialist agent | `agents/specialist.py` | One class, three domains; extracts age, eGFR and conditions from the query with regex and adds them to the prompt |
+| Consensus agent | `agents/consensus.py` | Reconciles specialist outputs into one plan |
+| Graph | `graph/builder.py` | LangGraph `StateGraph`: router, tools, specialists, consensus |
+| State | `core/state.py` | Typed state shared between nodes |
+| LLM client | `core/llm.py` | One interface for Ollama (`/api/chat`) and vLLM (OpenAI-compatible), JSON mode on by default |
+| Tools | `tools/` | Guideline search, literature retrieval, dose and interaction stubs, OpenAI-style tool specs |
+| JSON parsing | `utils/parser.py` | Tolerant parsing of model output with safe defaults |
+| UI | `app.py` | Streamlit front end |
 
-1. **Clone the repository**:
-   ```bash
-   git clone <repository-url>
-   cd MA-CDH
-   ```
+### Tools
 
-2. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+| Tool | What it does today |
+|---|---|
+| `search_guidelines` | Keyword search over the JSON guideline summaries in `data/guidelines/`, filtered by section (diagnosis, treatment, monitoring, drug-dosing) |
+| `retrieve_rag` | Keyword search over the JSONL corpus in `data/rag_corpus/`, with title matches weighted higher |
+| `calc_dose` | Placeholder: a fixed weight-based formula with a flat reduction when eGFR is below 60. Not a real dosing rule |
+| `check_interactions` | Placeholder: returns a fixed example interaction. Not a real interaction database |
 
-3. **Set up the medical database**:
-   ```bash
-   python scripts/setup_data.py
-   ```
+### About the data
 
-## Quick Start
+The seven files in `data/guidelines/` carry the names of real guidelines (ESC, ESH, AHA/ACC, ADA, KDIGO, JNC 8). Their content is a short summary written for this prototype to exercise the pipeline. It is not the official text and has not been checked against it. Each file says so in its `title`, `illustrative` and `disclaimer` fields. The eight entries in `data/rag_corpus/medical_literature.jsonl` are synthetic abstracts and are marked `synthetic` in the same way. `scripts/setup_data.py` regenerates both sets with these labels.
 
-### Option 1: Streamlit Web Interface
+## How to run
+
+Requirements: Python 3.9 or newer and a running Ollama or vLLM server.
+
+```bash
+git clone https://github.com/Arjun-Sivasankar/CardioMetabolic-Agents.git
+cd CardioMetabolic-Agents
+pip install -r requirements.txt
+
+# optional: the data is already committed; this regenerates it
+python scripts/setup_data.py
+```
+
+Start a model, for example with Ollama:
+
+```bash
+ollama pull qwen2.5:1.5b-instruct    # or qwen2.5:7b-instruct
+```
+
+Launch the Streamlit app:
+
 ```bash
 streamlit run app.py
 ```
 
-### Option 2: Jupyter Notebook (Development)
-Open `helpers/agentic-langgraph-diagnose.ipynb` for interactive development and testing.
+In the sidebar choose the provider (`ollama` or `vllm`), model name, endpoint, temperature and max tokens, then click **Apply Configuration**. Without it the app falls back to Ollama with `qwen2.5:1.5b-instruct` at `http://localhost:11434`. The sidebar also has six sample cases. Enter a case and click **Analyze**.
 
-## Configuration
+For vLLM, point the endpoint at the OpenAI-compatible base URL, for example `http://localhost:8000/v1`. Defaults live in `config/llm_config.py`.
 
-### LLM Backend Configuration
+To run the graph without the UI, `helpers/agentic-langgraph-diagnose.ipynb` is the development notebook.
 
-Edit `config/llm_config.py` to configure your LLM provider:
+## Extending it
 
-**For Ollama (Recommended for local development)**:
-```python
-provider = "ollama"
-model = "qwen2.5:1.5b-instruct"  # or "qwen2.5:7b-instruct"
-endpoint = "http://localhost:11434"
-```
+- **New specialist:** add the domain to the router's allowed list and prompt in `agents/router.py`, register a `SpecialistAgent(llm, "<domain>")` in `graph/builder.py`, add a tab in `app.py`, and add a `data/guidelines/<domain>/` folder.
+- **New guideline summary:** add a JSON file with `id`, `title`, `organization`, `year` and `sections` (each with `content` and `key_points`) to the right folder.
 
-**For vLLM (Production deployment)**:
-```python
-provider = "vllm"
-model = "your-7b-checkpoint"
-endpoint = "http://your-vllm-endpoint:8000"
-```
+## Limitations
 
-### Model Size Selection
-- **1.5B Model**: Faster inference, good for development and testing
-- **7B Model**: Better accuracy, recommended for production use
+- Research prototype. Not validated clinically, not a medical device, not medical advice.
+- Guideline and literature data are small illustrative samples, not official sources.
+- Retrieval is keyword matching, not embedding search.
+- `calc_dose` and `check_interactions` are placeholders that return fixed or formula-based example values.
+- Tool calls requested by a specialist are executed, but their results are not yet fed back into that specialist or passed to the consensus step. Only the initial tools step reaches the agents.
+- Patient weight is not parsed from the query; a default of 75 kg is used.
+- No automated tests or evaluation set yet.
+- Quality depends strongly on the model; small models (1.5B) sometimes return malformed JSON, which the parser replaces with safe defaults.
 
-## Usage
+## License
 
-### Web Interface
-
-1. Launch the Streamlit app: `streamlit run app.py`
-2. Configure your LLM provider in the sidebar
-3. Enter medical queries in natural language
-4. Review responses from specialist agents
-5. View the final consensus recommendation
-
-## 🏗️ Architecture
-
-### Agent Workflow
-
-```mermaid
-graph TD
-    A[User Query] --> B[Router Agent]
-    B --> C[Tools Execution]
-    C --> D[Specialist Agents]
-    D --> E[Cardiology Agent]
-    D --> F[Diabetes Agent]
-    D --> G[Hypertension Agent]
-    E --> H[Consensus Agent]
-    F --> H
-    G --> H
-    H --> I[Final Recommendation]
-```
-
-### Key Components
-
-- **Router Agent**: Analyzes queries and determines which specialists to involve
-- **Specialist Agents**: Domain-specific agents with access to relevant tools and guidelines
-- **Consensus Agent**: Synthesizes specialist recommendations into coherent advice
-- **Tools System**: Provides access to medical databases, guidelines, and calculators
-
-## Available Tools
-
-| Tool | Description | Usage |
-|------|-------------|-------|
-| `search_guidelines` | Clinical practice guidelines search | Treatment protocols, diagnostic criteria |
-| `retrieve_rag` | Medical literature retrieval | Research evidence, studies |
-| `calc_dose` | Medication dosing calculator | Weight/eGFR-based dosing |
-| `check_interactions` | Drug interaction checker | Safety screening |
-
-## Medical Domains
-
-The system currently supports:
-
-- **Cardiology**: Heart disease, hypertension, cardiovascular risk
-- **Diabetes**: Type 1/2 diabetes, glucose management, complications
-- **Hypertension**: Blood pressure management, antihypertensive therapy
-
-## Development
-
-### Adding New Specialists
-
-1. Create a new agent class inheriting from `BaseAgent`
-2. Define domain-specific system prompts
-3. Register specialist tools in `tools/registry.py`
-4. Update the graph builder in `graph/builder.py`
-
-### Adding Medical Guidelines
-
-1. Add JSON files to appropriate `data/guidelines/` subdirectory
-2. Follow the existing schema structure
-3. Run `python scripts/setup_data.py` to update the database
-
-
+MIT, see [LICENSE](LICENSE).

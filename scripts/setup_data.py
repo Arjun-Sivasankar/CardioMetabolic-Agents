@@ -7,6 +7,41 @@ import json
 import os
 from pathlib import Path
 
+# The guideline and literature entries below are short illustrative summaries
+# written for this research prototype. They are not official guideline text or
+# real publications, and they have not been checked against the sources whose
+# names they carry. Not medical advice.
+GUIDELINE_PREFIX = "Illustrative summary (not official guideline text): "
+GUIDELINE_DISCLAIMER = (
+    "Short summary written for this research prototype. It is not the official "
+    "guideline text and has not been checked against it. Not medical advice."
+)
+LITERATURE_SOURCE = "Synthetic example entry (not a real publication)"
+LITERATURE_DISCLAIMER = (
+    "Synthetic abstract written for this research prototype. It does not "
+    "reproduce or cite a real paper. Not medical advice."
+)
+
+
+def mark_illustrative_guideline(guideline):
+    """Label a guideline entry as an illustrative prototype summary."""
+    marked = dict(guideline)
+    title = marked.get("title", "")
+    if not title.startswith(GUIDELINE_PREFIX):
+        marked["title"] = GUIDELINE_PREFIX + title
+    marked["illustrative"] = True
+    marked["disclaimer"] = GUIDELINE_DISCLAIMER
+    return marked
+
+
+def mark_synthetic_literature(entry):
+    """Label a literature entry as synthetic example data."""
+    marked = dict(entry)
+    marked["journal"] = LITERATURE_SOURCE
+    marked["synthetic"] = True
+    marked["disclaimer"] = LITERATURE_DISCLAIMER
+    return marked
+
 
 def create_guidelines_database():
     """Create sample medical guidelines database"""
@@ -212,7 +247,7 @@ def create_guidelines_database():
         for guideline_id, guideline_data in guidelines.items():
             file_path = category_path / f"{guideline_id}.json"
             with open(file_path, 'w') as f:
-                json.dump(guideline_data, f, indent=2)
+                json.dump(mark_illustrative_guideline(guideline_data), f, indent=2)
             print(f"Created: {file_path}")
 
 
@@ -342,7 +377,7 @@ def create_rag_corpus():
     corpus_path = base_path / "medical_literature.jsonl"
     with open(corpus_path, 'w') as f:
         for entry in literature:
-            f.write(json.dumps(entry) + '\n')
+            f.write(json.dumps(mark_synthetic_literature(entry)) + '\n')
     
     print(f"Created: {corpus_path}")
     print(f"Total documents: {len(literature)}")
@@ -355,7 +390,7 @@ if __name__ == "__main__":
     print("\nSetting up medical literature corpus...")
     create_rag_corpus()
     
-    print("\n✓ Data setup complete!")
+    print("\nData setup complete.")
     print("\nNext steps:")
     print("1. Guidelines are stored in data/guidelines/")
     print("2. Medical literature is in data/rag_corpus/")

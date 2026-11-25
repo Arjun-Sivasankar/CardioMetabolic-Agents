@@ -1,6 +1,6 @@
 {
   "id": "esc-esh-2023-htn",
-  "title": "2023 ESC/ESH Guidelines for Hypertension Management",
+  "title": "Illustrative summary (not official guideline text): 2023 ESC/ESH Guidelines for Hypertension Management",
   "organization": "European Society of Cardiology",
   "year": 2023,
   "sections": {
@@ -12,5 +12,7 @@
         "Single pill combinations improve adherence"
       ]
     }
-  }
+  },
+  "illustrative": true,
+  "disclaimer": "Short summary written for this research prototype. It is not the official guideline text and has not been checked against it. Not medical advice."
 }

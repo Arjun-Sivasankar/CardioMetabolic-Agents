@@ -1,6 +1,6 @@
 {
   "id": "aha-acc-2024-htn",
-  "title": "2024 AHA/ACC Guideline for the Management of High Blood Pressure in Adults",
+  "title": "Illustrative summary (not official guideline text): 2024 AHA/ACC Guideline for the Management of High Blood Pressure in Adults",
   "organization": "American Heart Association / American College of Cardiology",
   "year": 2024,
   "sections": {
@@ -46,5 +46,7 @@
   "references": [
     "PMID: 12345678",
     "DOI: 10.1161/CIR.2024"
-  ]
+  ],
+  "illustrative": true,
+  "disclaimer": "Short summary written for this research prototype. It is not the official guideline text and has not been checked against it. Not medical advice."
 }

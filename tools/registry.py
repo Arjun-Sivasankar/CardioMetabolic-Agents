@@ -12,7 +12,7 @@ def tool_specs() -> List[Dict[str, Any]]:
             "type": "function",
             "function": {
                 "name": "search_guidelines",
-                "description": "Search vetted clinical practice guidelines from major medical organizations (AHA/ACC, ESC, ADA, KDIGO). Returns evidence-based recommendations with citations.",
+                "description": "Search the local set of illustrative guideline summaries (cardiology, diabetes, hypertension) written for this prototype. Entries carry the names of AHA/ACC, ESC, ADA and KDIGO guidelines but are not official guideline text.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -34,7 +34,7 @@ def tool_specs() -> List[Dict[str, Any]]:
             "type": "function",
             "function": {
                 "name": "retrieve_rag",
-                "description": "Retrieve relevant passages from medical literature corpus (peer-reviewed studies, meta-analyses, clinical trials). Use to find specific research evidence.",
+                "description": "Retrieve passages from the local literature corpus. The bundled corpus contains synthetic example abstracts written for this prototype, not real publications.",
                 "parameters": {
                     "type": "object",
                     "properties": {
